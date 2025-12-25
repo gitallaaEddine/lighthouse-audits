@@ -17,20 +17,13 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Lighthouse
-        run: npm install -g lighthouse
+      - name: Install lighthouse-batch
+        run: npm install -g lighthouse-batch
 
-      - name: Run Lighthouse on all URLs
+
+      - name: Run lighthouse-batch
         run: |
-          mkdir reports
-          while read url; do
-            safe=$(echo "$url" | sed 's|https\?://||; s|/||g')
-            lighthouse "$url" \
-              --chrome-flags="--headless --no-sandbox" \
-              --output=json \
-              --output-path=reports/$safe.json \
-              --only-categories=performance,seo,accessibility,best-practices
-          done < urls.txt
+          lighthouse-batch -s $(paste -sd, urls.txt)
 
       - name: Upload reports
         uses: actions/upload-artifact@v4
