@@ -1,0 +1,38 @@
+name: Lighthouse Batch Audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Lighthouse
+        run: npm install -g lighthouse
+
+      - name: Run Lighthouse on all URLs
+        run: |
+          mkdir reports
+          while read url; do
+            safe=$(echo "$url" | sed 's|https\?://||; s|/||g')
+            lighthouse "$url" \
+              --chrome-flags="--headless --no-sandbox" \
+              --output=json \
+              --output-path=reports/$safe.json \
+              --only-categories=performance,seo,accessibility,best-practices
+          done < urls.txt
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: reports
