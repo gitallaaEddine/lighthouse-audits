@@ -14,15 +14,22 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Install lighthouse-batch
         run: npm install -g lighthouse-batch
 
-
       - name: Run lighthouse-batch
         run: |
-          lighthouse-batch -s $(paste -sd, urls.txt)
+          # fail early if urls.txt missing
+          if [ ! -f urls.txt ]; then echo "ERROR: urls.txt not found" && exit 1; fi
+
+          # run lighthouse-batch on comma-separated URLs from urls.txt
+          lighthouse-batch -s "$(paste -sd, urls.txt)"
+
+          # collect generated report files into a single folder for upload
+          mkdir -p reports
+          mv *.report.json summary.json reports/ || true
 
       - name: Upload reports
         uses: actions/upload-artifact@v4
