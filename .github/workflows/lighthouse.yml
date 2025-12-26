@@ -21,15 +21,14 @@ jobs:
 
       - name: Run lighthouse-batch
         run: |
-          # fail early if urls.txt missing
-          if [ ! -f urls.txt ]; then echo "ERROR: urls.txt not found" && exit 1; fi
+          URLS=$(tr -d '\r' < urls.txt | tr '\n' ',' | sed 's/,$//')
+          echo "Running on: $URLS"
+          lighthouse-batch -s "$URLS"
 
-          # run lighthouse-batch on comma-separated URLs from urls.txt
-          lighthouse-batch -s "$(paste -sd, urls.txt)"
-
-          # collect generated report files into a single folder for upload
+      - name: Collect reports
+        run: |
           mkdir -p reports
-          mv *.report.json summary.json reports/ || true
+          mv report/lighthouse/* reports/
 
       - name: Upload reports
         uses: actions/upload-artifact@v4
